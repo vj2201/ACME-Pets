@@ -1,0 +1,88 @@
+name: Deploy Node.js Container Apps with PostgreSQL
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+jobs:
+  terraform:
+    name: 'Terraform Deploy'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.5.0"
+
+    - name: Determine Environment
+      id: environment
+      run: |
+        if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "environment=prod" >> $GITHUB_OUTPUT
+          echo "working_directory=environments/prod" >> $GITHUB_OUTPUT
+        else
+          echo "environment=dev" >> $GITHUB_OUTPUT
+          echo "working_directory=environments/dev" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+      working-directory: .
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+
+    - name: Terraform Plan
+      run: terraform plan -no-color -input=false
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+      continue-on-error: true
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      run: terraform apply -auto-approve -input=false
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+
+    - name: Output Application URLs
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      run: |
+        echo "## 🚀 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Application URLs:" >> $GITHUB_STEP_SUMMARY
+        terraform output -no-color app1_url >> $GITHUB_STEP_SUMMARY
+        terraform output -no-color app2_url >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Database:" >> $GITHUB_STEP_SUMMARY
+        echo "PostgreSQL Server: $(terraform output -raw postgres_server_fqdn)" >> $GITHUB_STEP_SUMMARY
+        echo "Database Name: $(terraform output -raw postgres_database_name)" >> $GITHUB_STEP_SUMMARY
+      working-directory: ${{ steps.environment.outputs.working_directory }}

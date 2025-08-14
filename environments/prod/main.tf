@@ -1,0 +1,52 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+
+  # Uncomment and configure for remote state
+  # backend "azurerm" {
+  #   resource_group_name  = "terraform-state-rg"
+  #   storage_account_name = "terraformstate12345"
+  #   container_name       = "tfstate"
+  #   key                  = "prod/container-apps.tfstate"
+  # }
+}
+
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+module "container_apps" {
+  source = "../../modules/container-apps"
+
+  environment                    = var.environment
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  container_app_environment_name = var.container_app_environment_name
+  app1_name                     = var.app1_name
+  app2_name                     = var.app2_name
+  app1_image                    = var.app1_image
+  app2_image                    = var.app2_image
+  app1_port                     = var.app1_port
+  app2_port                     = var.app2_port
+  key_vault_name                = var.key_vault_name
+  postgres_server_name          = var.postgres_server_name
+  postgres_database_name        = var.postgres_database_name
+  postgres_admin_username       = var.postgres_admin_username
+  postgres_admin_password       = var.postgres_admin_password
+  postgres_sku_name            = var.postgres_sku_name
+  postgres_storage_mb          = var.postgres_storage_mb
+  postgres_version             = var.postgres_version
+  min_replicas                 = var.min_replicas
+  max_replicas                 = var.max_replicas
+  node_env                     = var.node_env
+  tags                         = var.tags
+}
