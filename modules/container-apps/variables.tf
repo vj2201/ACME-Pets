@@ -121,3 +121,14 @@ variable "node_env" {
   type        = string
   default     = "production"
 }
+variable "acr_server" {
+  description = "ACR server URL"
+  type        = string
+  default     = ""
+}
+
+variable "key_vault_id" {
+  description = "Key Vault ID for retrieving secrets"
+  type        = string
+  default     = ""
+}

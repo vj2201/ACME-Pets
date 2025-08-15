@@ -2,13 +2,14 @@ environment                    = "dev"
 location                      = "Australia East"
 resource_group_name           = "acme-pets-terraform-state"
 container_app_environment_name = "acmepets-container-app-env-dev"
-app1_name                     = "acmepets-simple-frontend-dev"
-app2_name                     = "acmepets-simple-paging-system-dev"
+app1_name                     = "acmepets-frontend-dev"
+app2_name                     = "acmepets-paging-system-dev"
 app1_image                    = "acracmepets.azurecr.io/acmepets-simple-frontend:latest"
 app2_image                    = "acracmepets.azurecr.io/acmepets-simple-paging-system:latest"
 app1_port                     = 3000
 app2_port                     = 3001
 key_vault_name                = "kv-nodeapp-dev-001"
+acr_server                    = "acracmepets.azurecr.io"
 postgres_server_name          = "postgres-flexible-acme-dev"
 postgres_database_name        = "nodeapp_dev"
 postgres_admin_username       = "postgresadmin"
@@ -26,3 +27,4 @@ tags = {
   ManagedBy   = "terraform"
   Stack       = "nodejs-postgresql"
 }
+

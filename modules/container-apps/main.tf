@@ -104,7 +104,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   version                = var.postgres_version
   administrator_login    = var.postgres_admin_username
   administrator_password = local.postgres_password
-  
+  zone ="2" # Use zone-redundant configuration for production environments
   storage_mb   = var.postgres_storage_mb
   sku_name     = var.postgres_sku_name
   

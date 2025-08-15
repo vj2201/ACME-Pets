@@ -135,3 +135,8 @@ variable "tags" {
     Stack       = "nodejs-postgresql"
   }
 }
+variable "acr_server" {
+  description = "ACR server URL"
+  type        = string
+  default     = ""
+}
