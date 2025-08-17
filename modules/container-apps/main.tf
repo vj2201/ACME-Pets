@@ -84,7 +84,7 @@ resource "azurerm_key_vault_secret" "postgres_connection_string" {
   name         = "postgres-connection-string"
   value        = "postgresql://${var.postgres_admin_username}:${local.postgres_password}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.postgres_database_name}?sslmode=require"
   key_vault_id = azurerm_key_vault.main[0].id
-  
+
   depends_on = [azurerm_postgresql_flexible_server.main]
 }
 
@@ -104,13 +104,13 @@ resource "azurerm_postgresql_flexible_server" "main" {
   version                = var.postgres_version
   administrator_login    = var.postgres_admin_username
   administrator_password = local.postgres_password
-  zone ="2" # Use zone-redundant configuration for production environments
-  storage_mb   = var.postgres_storage_mb
-  sku_name     = var.postgres_sku_name
-  
-  backup_retention_days = 7
+  zone                   = "2" # Use zone-redundant configuration for production environments
+  storage_mb             = var.postgres_storage_mb
+  sku_name               = var.postgres_sku_name
+
+  backup_retention_days        = 7
   geo_redundant_backup_enabled = false
-  
+
   # high_availability {
   # mode = var.environment == "prod" ? "ZoneRedundant" : "Disabled"
   #}
@@ -141,6 +141,15 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "azure_services" {
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
 }
+# Keep your existing firewall rules and ADD this one:
+
+# PostgreSQL Firewall Rule for specific Container App IP
+resource "azurerm_postgresql_flexible_server_firewall_rule" "container_app_ip" {
+  name             = "AllowContainerAppIP"
+  server_id        = azurerm_postgresql_flexible_server.main.id
+  start_ip_address = "4.254.3.151"
+  end_ip_address   = "4.254.3.151"
+}
 
 # Container App 1 - Node.js Application
 resource "azurerm_container_app" "app1" {
@@ -150,6 +159,11 @@ resource "azurerm_container_app" "app1" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  registry {
+    server               = var.acr_server
+    username             = var.acr_username
+    password_secret_name = "acr-password"
+  }
   template {
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas
@@ -207,17 +221,17 @@ resource "azurerm_container_app" "app1" {
       }
 
       # Simplified health checks compatible with AzureRM provider
-      liveness_probe {
-        transport = "HTTP"
-        port      = var.app1_port
-        path      = "/health"
-      }
+      #liveness_probe {
+      #  transport = "HTTP"
+      #  port      = var.app1_port
+      #  path      = "/health"
+      #}
 
-      readiness_probe {
-        transport = "HTTP"
-        port      = var.app1_port
-        path      = "/ready"
-      }
+      #readiness_probe {
+      #  transport = "HTTP"
+      #  port      = var.app1_port
+      #  path      = "/ready"
+      #}
     }
 
     # HTTP scaling rule
@@ -230,6 +244,10 @@ resource "azurerm_container_app" "app1" {
   secret {
     name  = "db-password"
     value = local.postgres_password
+  }
+   secret {
+    name  = "acr-password"
+    value = var.acr_password
   }
 
   ingress {
@@ -257,6 +275,11 @@ resource "azurerm_container_app" "app2" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  registry {
+    server               = var.acr_server
+    username             = var.acr_username
+    password_secret_name = "acr-password"
+  }
   template {
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas
@@ -314,17 +337,17 @@ resource "azurerm_container_app" "app2" {
       }
 
       # Simplified health checks compatible with AzureRM provider
-      liveness_probe {
-        transport = "HTTP"
-        port      = var.app2_port
-        path      = "/health"
-      }
+      #liveness_probe {
+      #  transport = "HTTP"
+      #  port      = var.app2_port
+      #  path      = "/health"
+      #}
 
-      readiness_probe {
-        transport = "HTTP"
-        port      = var.app2_port
-        path      = "/ready"
-      }
+      #readiness_probe {
+      #  transport = "HTTP"
+      #  port      = var.app2_port
+      #  path      = "/ready"
+      #}
     }
 
     # HTTP scaling rule
@@ -338,7 +361,10 @@ resource "azurerm_container_app" "app2" {
     name  = "db-password"
     value = local.postgres_password
   }
-
+ secret {
+    name  = "acr-password"
+    value = var.acr_password
+  }
   ingress {
     allow_insecure_connections = false
     external_enabled           = true
@@ -354,4 +380,19 @@ resource "azurerm_container_app" "app2" {
     azurerm_postgresql_flexible_server.main,
     azurerm_postgresql_flexible_server_database.main
   ]
+}
+# Store ACR username in Key Vault
+resource "azurerm_key_vault_secret" "acr_username" {
+  count        = var.key_vault_name != "" ? 1 : 0
+  name         = "acr-username"
+  value        = var.acr_username
+  key_vault_id = azurerm_key_vault.main[0].id
+}
+
+# Store ACR password in Key Vault
+resource "azurerm_key_vault_secret" "acr_password" {
+  count        = var.key_vault_name != "" ? 1 : 0
+  name         = "acr-password"
+  value        = var.acr_password
+  key_vault_id = azurerm_key_vault.main[0].id
 }

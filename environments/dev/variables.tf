@@ -138,5 +138,17 @@ variable "tags" {
 variable "acr_server" {
   description = "ACR server URL"
   type        = string
-  default     = ""
+  default     = "acracmepets.azurecr.io"
+}
+
+variable "acr_username" {
+  description = "ACR username"
+  type        = string
+  sensitive   = true
+}
+
+variable "acr_password" {
+  description = "ACR password"
+  type        = string
+  sensitive   = true
 }
