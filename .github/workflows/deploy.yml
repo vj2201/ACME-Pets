@@ -57,6 +57,25 @@ jobs:
         TF_VAR_acr_username: ${{ secrets.ACR_USERNAME }}
         TF_VAR_acr_password: ${{ secrets.ACR_PASSWORD }}
 
+    - name: Debug - Check File Contents
+      run: |
+        echo "=== Working Directory ==="
+        pwd
+        ls -la
+        echo ""
+        echo "=== Module Variables File (ACR section) ==="
+        cat ../../modules/container-apps/variables.tf | grep -A 10 "acr_" || echo "No ACR variables found in module"
+        echo ""
+        echo "=== Root Variables File (ACR section) ==="
+        cat variables.tf | grep -A 10 "acr_" || echo "No ACR variables found in root"
+        echo ""
+        echo "=== Module Call (ACR section) ==="
+        cat main.tf | grep -A 5 "acr_" || echo "No ACR variables found in module call"
+        echo ""
+        echo "=== Environment Variables ==="
+        env | grep TF_VAR || echo "No TF_VAR variables found"
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+
     - name: Terraform Validate
       run: terraform validate
       working-directory: ${{ steps.environment.outputs.working_directory }}
