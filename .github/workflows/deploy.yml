@@ -86,3 +86,36 @@ jobs:
         echo "PostgreSQL Server: $(terraform output -raw postgres_server_fqdn)" >> $GITHUB_STEP_SUMMARY
         echo "Database Name: $(terraform output -raw postgres_database_name)" >> $GITHUB_STEP_SUMMARY
       working-directory: ${{ steps.environment.outputs.working_directory }}
+
+      - name: Terraform Init
+      run: terraform init
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+        TF_VAR_acr_username: ${{ secrets.ACR_USERNAME }}
+        TF_VAR_acr_password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_acr_username: ${{ secrets.ACR_USERNAME }}
+        TF_VAR_acr_password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Terraform Plan
+      run: terraform plan -no-color -input=false
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+        TF_VAR_acr_username: ${{ secrets.ACR_USERNAME }}
+        TF_VAR_acr_password: ${{ secrets.ACR_PASSWORD }}
+      continue-on-error: true
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+      run: terraform apply -auto-approve -input=false
+      working-directory: ${{ steps.environment.outputs.working_directory }}
+      env:
+        TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+        TF_VAR_acr_username: ${{ secrets.ACR_USERNAME }}
+        TF_VAR_acr_password: ${{ secrets.ACR_PASSWORD }}
