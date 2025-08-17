@@ -126,21 +126,18 @@ variable "acr_server" {
   type        = string
   default     = "acracmepets.azurecr.io"
 }
-
-variable "key_vault_id" {
-  description = "Key Vault ID for retrieving secrets"
-  type        = string
-  default     = ""
-}
-
 variable "acr_username" {
   description = "ACR username"
   type        = string
   sensitive   = true
 }
-
 variable "acr_password" {
   description = "ACR password"
   type        = string
   sensitive   = true
+}
+variable "key_vault_id" {
+  description = "Key Vault ID for retrieving secrets"
+  type        = string
+  default     = ""
 }
