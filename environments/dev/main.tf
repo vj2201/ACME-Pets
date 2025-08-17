@@ -28,7 +28,7 @@ provider "azurerm" {
 # Single module block with all variables
 module "container_apps" {
   source = "../../modules/container-apps"
-  
+
   environment                    = var.environment
   location                       = var.location
   resource_group_name            = var.resource_group_name
@@ -51,7 +51,7 @@ module "container_apps" {
   max_replicas                   = var.max_replicas
   node_env                       = var.node_env
   tags                           = var.tags
-  
+
   # ACR authentication variables
   acr_server   = var.acr_server
   acr_username = var.acr_username

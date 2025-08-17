@@ -245,7 +245,7 @@ resource "azurerm_container_app" "app1" {
     name  = "db-password"
     value = local.postgres_password
   }
-   secret {
+  secret {
     name  = "acr-password"
     value = var.acr_password
   }
@@ -361,7 +361,7 @@ resource "azurerm_container_app" "app2" {
     name  = "db-password"
     value = local.postgres_password
   }
- secret {
+  secret {
     name  = "acr-password"
     value = var.acr_password
   }
