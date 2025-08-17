@@ -23,10 +23,10 @@ provider "azurerm" {
     }
   }
   skip_provider_registration = true
-  
+
   # Force use of service principal authentication
-  use_cli = false
-  use_msi = false
+  use_cli  = false
+  use_msi  = false
   use_oidc = false
 }
 
