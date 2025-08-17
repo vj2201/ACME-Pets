@@ -56,4 +56,7 @@ module "container_apps" {
   acr_server   = var.acr_server
   acr_username = var.acr_username
   acr_password = var.acr_password
+  acr_server   = var.acr_server
+  acr_username = var.acr_username
+  acr_password = var.acr_password
 }
