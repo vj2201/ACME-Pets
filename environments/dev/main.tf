@@ -23,8 +23,8 @@ provider "azurerm" {
     }
   }
   skip_provider_registration = true
-    use_cli = false
-  use_msi = false
+  use_cli                    = false
+  use_msi                    = false
 }
 
 # Single module block with all variables
